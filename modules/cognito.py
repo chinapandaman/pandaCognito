@@ -17,6 +17,8 @@ class Cognito(object):
 
         self.auth = Auth(db=self.db, host_names=current.config.get("host.names"))
 
+        self.auth.settings.create_user_groups = None
+
         # TODO: extend this during implementation
         self.auth.settings.extra_fields["auth_user"] = [
             Field("user_attributes", type="json")
