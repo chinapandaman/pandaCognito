@@ -2,6 +2,8 @@
 
 
 # -------------------------------------------------------------------------
+from gluon import current
+
 # Auth is for authenticaiton and access control
 # -------------------------------------------------------------------------
 from gluon.contrib.appconfig import AppConfig
@@ -160,3 +162,7 @@ if configuration.get("scheduler.enabled"):
 # after defining tables, uncomment below to enable auditing
 # -------------------------------------------------------------------------
 # auth.enable_record_versioning(db)
+
+current.request = request
+current.db = db
+current.config = configuration
