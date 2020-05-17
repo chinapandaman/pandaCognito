@@ -1,0 +1,15 @@
+__pycache__/
+modules/__pycache__/
+cache/
+venv/
+.idea/
+.vscode/
+databases/
+sessions/
+errors/
+uploads/
+*.pyc
+*.bak
+*.log
+.env
+temp/
