@@ -1,43 +1,12 @@
 # -*- coding: utf-8 -*-
-# -------------------------------------------------------------------------
-# This is a sample controller
-# this file is released under public domain and you can use without limitations
-# -------------------------------------------------------------------------
-
-# ---- example index page ----
-def index():
-    response.flash = T("Hello World")
-    return dict(message=T("Welcome to web2py!"))
 
 
-# ---- API (example) -----
+@auth.allows_jwt()
 @auth.requires_login()
-def api_get_user_email():
-    if not request.env.request_method == "GET":
-        raise HTTP(403)
-    return response.json({"status": "success", "email": auth.user.email})
+def index():
+    return dict()
 
 
-# ---- Smart Grid (example) -----
-@auth.requires_membership("admin")  # can only be accessed by members of admin groupd
-def grid():
-    response.view = "generic.html"  # use a generic view
-    tablename = request.args(0)
-    if not tablename in db.tables:
-        raise HTTP(403)
-    grid = SQLFORM.smartgrid(
-        db[tablename], args=[tablename], deletable=False, editable=False
-    )
-    return dict(grid=grid)
-
-
-# ---- Embedded wiki (example) ----
-def wiki():
-    auth.wikimenu()  # add the wiki to the menu
-    return auth.wiki()
-
-
-# ---- Action for login/register/etc (required for auth) -----
 def user():
     """
     exposes:
@@ -54,14 +23,36 @@ def user():
     to decorate functions that need access control
     also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
     """
-    return dict(form=auth())
+
+    form = auth()
+
+    if request.args[0] == "register":
+        form.custom.widget.first_name["_placeholder"] = "First Name"
+        form.custom.widget.last_name["_placeholder"] = "Last Name"
+        form.custom.widget.password_two["_placeholder"] = "Confirm Password"
+
+    form.custom.widget.email["_placeholder"] = "Email"
+    form.custom.widget.password["_placeholder"] = "Password"
+
+    return dict(form=form)
 
 
-# ---- action to server uploaded static content (required) ---
 @cache.action()
+@auth.allows_jwt()
+@auth.requires_login()
 def download():
     """
     allows downloading of uploaded files
     http://..../[app]/default/download/[filename]
     """
     return response.download(request, db)
+
+
+@auth.allows_jwt()
+@auth.requires_login()
+def jwt_dump():
+    response.cookies["_token"] = ""
+    response.cookies["_token"]["expires"] = 0
+    response.cookies["_token"]["path"] = "/"
+
+    redirect(URL("default", "user/logout"))

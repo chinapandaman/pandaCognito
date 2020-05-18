@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 
 
-# -------------------------------------------------------------------------
 from gluon import current
-
+# -------------------------------------------------------------------------
+# AppConfig configuration made easy. Look inside private/appconfig.ini
 # Auth is for authenticaiton and access control
 # -------------------------------------------------------------------------
 from gluon.contrib.appconfig import AppConfig
-
-# -------------------------------------------------------------------------
-# AppConfig configuration made easy. Look inside private/appconfig.ini
 from gluon.tools import Auth
 
+# -------------------------------------------------------------------------
 # This scaffolding model makes your app work on Google App Engine too
 # File is released under public domain and you can use without limitations
 # -------------------------------------------------------------------------
@@ -39,6 +37,12 @@ if not request.env.web2py_runtime_gae:
         pool_size=configuration.get("db.pool_size"),
         migrate_enabled=configuration.get("db.migrate"),
         check_reserved=["all"],
+    )
+    session.connect(
+        request,
+        response,
+        cookie_key=configuration.get("session.secret"),
+        compression_level=None,
     )
 else:
     # ---------------------------------------------------------------------
@@ -92,13 +96,29 @@ response.form_label_separator = ""
 # -------------------------------------------------------------------------
 
 # host names must be a list of allowed host names (glob syntax allowed)
-auth = Auth(db, host_names=configuration.get("host.names"))
+auth = Auth(
+    db,
+    host_names=configuration.get("host.names"),
+    jwt={
+        "secret_key": configuration.get("jwt.secret"),
+        "expiration": configuration.get("jwt.expiration"),
+    },
+)
 
 # -------------------------------------------------------------------------
 # create all tables needed by auth, maybe add a list of extra fields
 # -------------------------------------------------------------------------
 auth.settings.extra_fields["auth_user"] = []
 auth.define_tables(username=False, signature=False)
+
+# TODO: implement proper access for the below disabled access control
+auth.settings.actions_disabled.append("profile")
+auth.settings.actions_disabled.append("retrieve_password")
+auth.settings.actions_disabled.append("change_password")
+auth.settings.actions_disabled.append("bulk_register")
+
+auth.settings.expiration = configuration.get("session.expiration")
+auth.settings.logout_next = URL("default", "user")
 
 # -------------------------------------------------------------------------
 # configure email
@@ -162,6 +182,13 @@ if configuration.get("scheduler.enabled"):
 # after defining tables, uncomment below to enable auditing
 # -------------------------------------------------------------------------
 # auth.enable_record_versioning(db)
+
+request.vars["_token"] = ""
+if request.env.HTTP_COOKIE and "_token" in request.env.HTTP_COOKIE:
+    for each in request.env.HTTP_COOKIE.split("; "):
+        if each.startswith("_token"):
+            request.vars["_token"] = each.split("=")[1]
+            break
 
 current.request = request
 current.db = db

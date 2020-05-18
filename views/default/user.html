@@ -1,33 +1,91 @@
-{{extend 'layout.html'}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Panda Cognito</title>
+    <!-- <link rel="shortcut icon" href="http://3.bp.blogspot.com/_8IbMPwvWq5E/TTyKyemzsVI/AAAAAAAAAI4/x1zkVRIuRI4/s1600/ominamu-tux-panda-2147.png" type="image/x-icon"> -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" href="{{=URL('static', 'css/auth.css')}}"/>
+</head>
+<body>
+<div class="body"></div>
+<div class="grad"></div>
+<div class="header">
+    <div><a class="site_icon" href="{{=URL('default', 'index')}}">Panda<span>Auth</span></a></div>
+</div>
+<br>
+<div class="login">
+    {{=form.custom.begin}}
 
-<div class="row"> 
-  <div id="web2py_user_form" class="col-lg-6" style="background-color:white; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:5px;padding: 20px">
-    <h2>
-      {{=T('Sign Up') if request.args(0) == 'register' else T('Log In') if request.args(0) == 'login' else T(request.args(0).replace('_',' ').title())}}
-    </h2>
-    {{=form}}
-    {{if request.args(0)=='login' and not 'register' in auth.settings.actions_disabled:}}
-    <a href="{{=URL('user/register')}}">{{=T('Register')}}</a>
+    {{if request.args(0) == "register":}}
+    {{=form.custom.widget.first_name}}
+    {{=form.custom.widget.last_name}}
+    {{pass}}
+
+    {{=form.custom.widget.email}}
+    {{=form.custom.widget.password}}
+
+    {{if request.args(0) == "register":}}
+    {{=form.custom.widget.password_two}}
+    {{pass}}
+
+    {{=form.custom.submit}}
+
+    {{=form.custom.end}}
+
+    {{if request.args(0) == "login" and not "register" in auth.settings.actions_disabled:}}
+    <a href="{{=URL('default', 'user/register')}}">{{=T('Need an account?')}}</a>
     <br/>
     {{pass}}
-    {{if request.args(0)=='login' and not 'retrieve_password' in auth.settings.actions_disabled:}}
-    <a href="{{=URL('user/retrieve_password')}}">{{=T('Lost your password?')}}</a>
+    {{if request.args(0) == "login" and not "retrieve_password" in auth.settings.actions_disabled:}}
+    <a href="{{=URL('default', 'user/retrieve_password')}}">{{=T('Forgot your password?')}}</a>
     {{pass}}
-    {{if request.args(0)=='register':}}
-    <a href="{{=URL('user/login')}}">{{=T('Login')}}</a>
+    {{if request.args(0) == "register":}}
+    <a href="{{=URL('default', 'user/login')}}">{{=T('Already have an account?')}}</a>
     {{pass}}
-  </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        let flash = "{{=response.flash}}";
+        if (flash) {
+            toastr.error(flash);
+        }
 
+        {{if request.args(0) == "login":}}
+        $("body > div.login > form > input.btn.btn-primary").click(function (e) {
+            let login_form = $("body > div.login > form");
+            e.preventDefault();
 
-{{block page_js}}
-<script>
-    jQuery("#web2py_user_form input:visible:enabled:first").focus();
-{{if request.args(0)=='register':}}
-    web2py_validate_entropy(jQuery('#auth_user_password'),100);
-{{elif request.args(0)=='change_password':}}
-    web2py_validate_entropy(jQuery('#no_table_new_password'),100);
-{{pass}}
+            $.ajax({
+                url: "{{=URL('default', 'user/jwt')}}",
+                method: "GET",
+                data: {
+                    username: $("#auth_user_email").val(),
+                    password: $("#auth_user_password").val(),
+                },
+                success: function (data) {
+                    let new_expiration = new Date();
+                    let token_expiration =
+                        parseInt('{{=configuration.get("jwt.expiration")}}') * 1000;
+                    new_expiration.setTime(
+                        new_expiration.getTime() + token_expiration
+                    );
+                    let expires = "; expires=" + new_expiration.toUTCString();
+                    let path = "; path=/";
+
+                    document.cookie = "_token=" + data["token"] + expires + path;
+                    login_form.submit();
+                },
+                error: function () {
+                    login_form.submit();
+                },
+            });
+        });
+        {{pass}}
+    });
 </script>
-{{end page_js}}
+</body>
+</html>
