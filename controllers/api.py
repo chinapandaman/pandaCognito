@@ -7,6 +7,8 @@ from cognito import Cognito
 from gluon import HTTP
 
 
+@auth.allows_jwt()
+@auth.requires_login()
 @request.restful()
 def sign_up():
     def POST(*reqargs, **reqvars):
