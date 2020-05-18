@@ -11,21 +11,21 @@ from gluon import HTTP
 @auth.requires_login()
 @request.restful()
 def sign_up():
-    def POST(*reqargs, **reqvars):
-        schema = {
-            "type": "object",
-            "properties": {
-                "Username": {"type": "string"},
-                "Password": {"type": "string"},
-                "UserAttributes": {"type": "object"},
-            },
-            "required": ["Username", "Password"],
-        }
+    schema = {
+        "type": "object",
+        "properties": {
+            "Username": {"type": "string"},
+            "Password": {"type": "string"},
+            "UserAttributes": {"type": "object"},
+        },
+        "required": ["Username", "Password"],
+    }
 
+    def POST(*reqargs, **reqvars):
         try:
             validate(instance=reqvars, schema=schema)
         except ValidationError:
-            raise HTTP(404, "InvalidParameterException")
+            raise HTTP(400, "InvalidParameterException")
 
         username = reqvars["Username"]
         password = reqvars["Password"]
