@@ -118,7 +118,6 @@ auth.settings.actions_disabled.append("change_password")
 auth.settings.actions_disabled.append("bulk_register")
 
 auth.settings.expiration = configuration.get("session.expiration")
-auth.settings.logout_next = URL("default", "user")
 
 # -------------------------------------------------------------------------
 # configure email
