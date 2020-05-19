@@ -24,7 +24,21 @@ class Cognito(object):
             Field("user_attributes", type="json")
         ]
 
-        self.auth.define_tables(username=True, signature=False)
+        self.auth.define_tables(username=True, signature=True)
+
+    def create_group(self, group_name, description):
+        result = self.auth.add_group(role=group_name, description=description)
+
+        group = self.db(self.db.auth_group.id == result).select().first()
+
+        return {
+            "Group": {
+                "GroupName": group["role"],
+                "Description": group["description"],
+                "LastModifiedDate": group["modified_on"],
+                "CreationDate": group["created_on"],
+            }
+        }
 
     def sign_up(self, username, password, user_attributes):
         result = self.auth.register_bare(username=username, password=password)
