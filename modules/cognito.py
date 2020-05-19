@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from gluon import DAL, Field, current
+from gluon import DAL, HTTP, Field, current
 from gluon.contrib.appconfig import AppConfig
 from gluon.tools import Auth
 
@@ -42,6 +42,9 @@ class Cognito(object):
 
     def sign_up(self, username, password, user_attributes):
         result = self.auth.register_bare(username=username, password=password)
+
+        if not result:
+            raise HTTP(400, "UsernameExistsException")
 
         result.update_record(user_attributes=user_attributes)
 
