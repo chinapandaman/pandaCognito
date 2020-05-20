@@ -37,6 +37,29 @@ def create_group():
 @auth.allows_jwt()
 @auth.requires_login()
 @request.restful()
+def delete_group():
+    schema = {
+        "type": "object",
+        "properties": {"GroupName": {"type": "string"},},
+        "required": ["GroupName"],
+    }
+
+    def DELETE(*reqargs, **reqvars):
+        try:
+            validate(instance=reqvars, schema=schema)
+        except ValidationError:
+            raise HTTP(400, "InvalidParameterException")
+
+        group_name = reqvars["GroupName"]
+
+        return response.json(Cognito().delete_group(group_name))
+
+    return locals()
+
+
+@auth.allows_jwt()
+@auth.requires_login()
+@request.restful()
 def sign_up():
     schema = {
         "type": "object",

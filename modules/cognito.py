@@ -43,6 +43,11 @@ class Cognito(object):
             }
         }
 
+    def delete_group(self, group_name):
+        self.db(self.db.auth_group.role == group_name).delete()
+
+        return None
+
     def sign_up(self, username, password, user_attributes):
         result = self.auth.register_bare(username=username, password=password)
 
