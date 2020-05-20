@@ -27,6 +27,9 @@ class Cognito(object):
         self.auth.define_tables(username=True, signature=True)
 
     def create_group(self, group_name, description):
+        if len(self.db(self.db.auth_group.role == group_name).select()):
+            raise HTTP(400, "GroupExistsException")
+
         result = self.auth.add_group(role=group_name, description=description)
 
         group = self.db(self.db.auth_group.id == result).select().first()
