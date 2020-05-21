@@ -26,6 +26,18 @@ class Cognito(object):
 
         self.auth.define_tables(username=True, signature=True)
 
+    def admin_add_user_to_group(self, username, group_name):
+        user = self.db(self.db.auth_user.username == username).select()
+        if not len(user):
+            raise HTTP(400, "UserNotFoundException")
+
+        group = self.db(self.db.auth_group.role == group_name).select()
+
+        if len(group):
+            self.auth.add_membership(group.first().id, user.first().id)
+
+        return None
+
     def create_group(self, group_name, description):
         if len(self.db(self.db.auth_group.role == group_name).select()):
             raise HTTP(400, "GroupExistsException")

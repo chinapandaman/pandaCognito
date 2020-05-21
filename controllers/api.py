@@ -10,6 +10,33 @@ from gluon import HTTP
 @auth.allows_jwt()
 @auth.requires_login()
 @request.restful()
+def admin_add_user_to_group():
+    schema = {
+        "type": "object",
+        "properties": {
+            "Username": {"type": "string"},
+            "GroupName": {"type": "string"},
+        },
+        "required": ["Username", "GroupName"],
+    }
+
+    def PATCH(*reqargs, **reqvars):
+        try:
+            validate(instance=reqvars, schema=schema)
+        except ValidationError:
+            raise HTTP(400, "InvalidParameterException")
+
+        username = reqvars["Username"]
+        group_name = reqvars["GroupName"]
+
+        return response.json(Cognito().admin_add_user_to_group(username, group_name))
+
+    return locals()
+
+
+@auth.allows_jwt()
+@auth.requires_login()
+@request.restful()
 def create_group():
     schema = {
         "type": "object",
