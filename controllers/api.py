@@ -10,7 +10,7 @@ from gluon import HTTP
 @auth.allows_jwt()
 @auth.requires_login()
 @request.restful()
-def admin_add_user_to_group():
+def add_user_to_group():
     schema = {
         "type": "object",
         "properties": {
@@ -29,7 +29,7 @@ def admin_add_user_to_group():
         username = reqvars["Username"]
         group_name = reqvars["GroupName"]
 
-        return response.json(Cognito().admin_add_user_to_group(username, group_name))
+        return response.json(Cognito().add_user_to_group(username, group_name))
 
     return locals()
 
